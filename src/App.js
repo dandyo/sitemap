@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import UrlList from './UrlList';
-import { Fancybox } from "@fancyapps/ui";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import "@fancyapps/ui/dist/fancybox/fancybox.css"
+import { AuthProvider } from './AuthContext';
+import PrivateRoute from './PrivateRoute';
 
-Fancybox.bind('[data-fancybox]', {
-  //
-});
+import Login from './Login';
+import Home from './Home';
+
 
 function App() {
   useEffect(() => {
@@ -15,24 +16,15 @@ function App() {
   // render() {
   return (
     <div className="App">
-      <div className="container">
-        <div className="wrap">
-          <h1>Sitemap</h1>
-          <p>12 websites to generate. <a href='#list' data-fancybox>Edit list</a></p>
-
-          <div className="progress mb-2" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-            <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: '25%' }}></div>
-          </div>
-
-          <div className='mb-4'>Status</div>
-
-          <button className='btn btn-primary'>Generate</button>
-
-          <div id='list' style={{ display: 'none' }}>
-            <UrlList />
-          </div>
-        </div>
-      </div>
+      <Router>
+        <AuthProvider>
+          <Routes>
+            <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />
+            <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </AuthProvider>
+      </Router>
     </div >
   );
   // }
