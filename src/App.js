@@ -7,7 +7,6 @@ import PrivateRoute from './PrivateRoute';
 import Login from './Login';
 import Home from './Home';
 
-
 function App() {
   useEffect(() => {
     document.title = 'Sitemap Generator';

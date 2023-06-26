@@ -1,12 +1,14 @@
 
 import { useNavigate } from 'react-router-dom';
-import React from 'react';
-import UrlList from './UrlList';
-import { Fancybox } from "@fancyapps/ui";
+import React, { useState, useEffect } from 'react';
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
+import { db } from './firebase'
+import Url from './Url';
+// import { Fancybox } from "@fancyapps/ui";
 import { UserAuth } from './AuthContext';
 import UrlForm from './UrlForm';
 
-Fancybox.bind('[data-fancybox]', {});
+// Fancybox.bind('[data-fancybox]', { dragToClose: false, contentClick: false });
 
 function Home() {
     const { logout } = UserAuth();
@@ -22,12 +24,55 @@ function Home() {
         }
     };
 
+    const generate = async () => {
+        console.log('generate');
+    }
+
+    const [urls, setUrls] = useState([])
+
+    useEffect(() => {
+        const taskColRef = query(collection(db, 'urls'), orderBy('datecreated', 'asc'))
+        onSnapshot(taskColRef, (snapshot) => {
+            setUrls(snapshot.docs.map(doc => ({
+                id: doc.id,
+                data: doc.data()
+            })))
+        })
+    }, [])
+
+    const [addModal, setAddModal] = useState(false);
+
+    const addModalHandle = () => {
+        setAddModal(false);
+    }
+
     return (
         <>
             <div className="container">
                 <div className="wrap">
                     <h1>Sitemap</h1>
-                    <p>12 websites to generate. <a href='#list' data-fancybox>Edit list</a></p>
+                    <p>{urls.length} websites to generate</p>
+                    <div className="url-list-wrap">
+                        <div>
+                            <div className="d-flex align-items-center">
+                                <div className="form-check">
+                                    <input className="form-check-input" type="checkbox" value="" id="selectall" />
+                                    <label className="form-check-label" htmlFor="selectall">
+                                        Select All
+                                    </label>
+                                </div>
+                                <div className="ms-auto">
+                                    <button className="btn py-0 px-1 fw-bold" onClick={() => setAddModal(true)}><i className="bi bi-plus-lg"></i></button>
+                                </div>
+                            </div>
+                            <hr />
+                            <ul className="mb-3">
+                                {urls.map((_url) => (
+                                    <Url key={_url.id} id={_url.id} url={_url.data.url} checked={_url.data.checked} folder={_url.data.folder} />
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
 
                     <div className="progress mb-2" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                         <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: '25%' }}></div>
@@ -35,16 +80,10 @@ function Home() {
 
                     <div className='mb-4'>Status</div>
 
-                    <button className='btn btn-primary'>Generate</button>
-
-                    <div id='list' style={{ display: 'none' }}>
-                        <UrlList />
-                    </div>
+                    <button className='btn btn-primary' onClick={generate}>Generate</button>
                     <p><button className='btn btn-link' onClick={handleLogout}>Logout</button></p>
 
-                    <div id='urlform' style={{ display: 'none' }}>
-                        <UrlForm />
-                    </div>
+                    {addModal && <UrlForm showModal={addModal} modalCloseHandle={addModalHandle} />}
                 </div>
             </div>
         </>

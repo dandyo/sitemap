@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 
-function UrlList() {
+function Urls() {
     const [urls, setUrls] = useState([]);
 
     const fetchUrls = async () => {
@@ -29,7 +29,7 @@ function UrlList() {
                     <div className="d-flex align-items-center">
                         <div className="form-check">
                             <input className="form-check-input" type="checkbox" value="" id="selectall" />
-                            <label class="form-check-label" for="selectall">
+                            <label className="form-check-label" htmlFor="selectall">
                                 Select All
                             </label>
                         </div>
@@ -41,9 +41,10 @@ function UrlList() {
                     <ul className="mb-3">
                         {urls?.map((url, i) => (
                             <li className="url-list-item" key={i}>
+                                <span className="drag-handle"><i className="bi bi-grip-vertical"></i></span>
                                 <div className="form-check">
                                     <input className="form-check-input" type="checkbox" value="{url.id}" id="url-{url.id}" />
-                                    <label class="form-check-label" for="">
+                                    <label className="form-check-label" htmlFor="url-{{url.id}}">
                                         {url.url}
                                     </label>
                                     <span className="folder">{url.folder}</span>
@@ -67,4 +68,4 @@ function UrlList() {
     );
 }
 
-export default UrlList;
+export default Urls;
