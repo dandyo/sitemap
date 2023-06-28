@@ -15,7 +15,7 @@ function App() {
   // render() {
   return (
     <div className="App">
-      <Router>
+      <Router basename='sitemap'>
         <AuthProvider>
           <Routes>
             <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />

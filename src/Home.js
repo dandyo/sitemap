@@ -26,12 +26,15 @@ function Home() {
 
     const generate = async () => {
         console.log('generate');
+        for (var i = 0; i < urls.length; i++) {
+            console.log(urls[i].data.url);
+        }
     }
 
     const [urls, setUrls] = useState([])
 
     useEffect(() => {
-        const taskColRef = query(collection(db, 'urls'), orderBy('datecreated', 'asc'))
+        const taskColRef = query(collection(db, 'urls'), orderBy('order', 'asc'), orderBy('datecreated', 'asc'))
         onSnapshot(taskColRef, (snapshot) => {
             setUrls(snapshot.docs.map(doc => ({
                 id: doc.id,

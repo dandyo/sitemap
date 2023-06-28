@@ -7,7 +7,6 @@ import { doc, deleteDoc, updateDoc } from "firebase/firestore";
 function Url({ id, url, checked, folder }) {
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
-    const [cbChecked, setCbChecked] = useState([]);
 
     const handleClose = () => {
         setOpen(false)
