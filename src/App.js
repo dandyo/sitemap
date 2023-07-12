@@ -6,6 +6,7 @@ import PrivateRoute from './PrivateRoute';
 
 import Login from './Login';
 import Home from './Home';
+import Generate from './Generate';
 
 function App() {
   useEffect(() => {
@@ -20,6 +21,7 @@ function App() {
           <Routes>
             <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />
             <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
+            <Route path='/generate' element={<PrivateRoute><Generate /></PrivateRoute>} />
             <Route path="/login" element={<Login />} />
           </Routes>
         </AuthProvider>
