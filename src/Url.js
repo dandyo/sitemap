@@ -3,8 +3,9 @@ import DeleteModal from './DeleteModal';
 import EditModal from './EditModal';
 import { db } from './firebase'
 import { doc, deleteDoc, updateDoc } from "firebase/firestore";
+import Checkbox from './Checkbox';
 
-function Url({ id, url, checked, folder }) {
+function Url({ id, url, isChecked, checked, folder, handleClick }) {
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
 
@@ -26,29 +27,37 @@ function Url({ id, url, checked, folder }) {
         setDeleteModal(false);
     };
 
-    const handleCheck = async () => {
-        const urlDocRef = doc(db, 'urls', id)
-        const check = (checked === true) ? false : true;
-        try {
-            await updateDoc(urlDocRef, {
-                checked: check
-            })
-        } catch (err) {
-            alert(err)
-        }
-    }
+    // const handleCheck = async () => {
+    //     const urlDocRef = doc(db, 'urls', id)
+    //     const check = (checked === true) ? false : true;
+    //     try {
+    //         await updateDoc(urlDocRef, {
+    //             checked: check
+    //         })
+    //     } catch (err) {
+    //         alert(err)
+    //     }
+    // }
 
     return (
         <>
             <li className="url-list-item" key={id}>
                 <span className="drag-handle"><i className="bi bi-grip-vertical"></i></span>
-                <div className="form-check">
-                    <input className="form-check-input" type="checkbox" value={id} id={'url-' + id} checked={checked} onChange={handleCheck} />
+                {/* <div className="form-check">
+                    <input className="form-check-input" type="checkbox" value={id} id={'url-' + id} checked={checked} onChange={handleClick} />
                     <label className="form-check-label" htmlFor={'url-' + id}>
                         {url}
                     </label>
                     <span className="folder">{folder}</span>
-                </div>
+                </div> */}
+
+                <Checkbox
+                    url={url}
+                    id={id}
+                    handleClick={handleClick}
+                    folder={folder}
+                    isChecked={isChecked}
+                    checked={checked} />
 
                 <div className="btn-wrap">
                     <button className="btn btn-edit" onClick={() => setOpen(true)}><i className="bi bi-pencil-square"></i></button>
