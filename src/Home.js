@@ -1,15 +1,16 @@
 
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
-import { db } from './firebase'
+// import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
+// import { db } from './firebase'
 import Url from './Url';
 import { UserAuth } from './AuthContext';
 import UrlForm from './UrlForm';
 import { Modal, ProgressBar, Spinner, Button } from 'react-bootstrap';
 import Checkbox from './Checkbox';
-import { doc, updateDoc } from "firebase/firestore";
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+// import { doc, updateDoc } from "firebase/firestore";
+// import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import axios from 'axios';
 
 function Home() {
     const { logout } = UserAuth();
@@ -34,36 +35,39 @@ function Home() {
     };
 
     const [urls, setUrls] = useState([])
+    let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/list";
+    // console.log(baseURL)
 
     useEffect(() => {
-        // const taskColRef = query(collection(db, 'urls'), orderBy('order', 'asc'), orderBy('datecreated', 'asc'))
-        const urlsColRef = query(collection(db, 'urls'), orderBy('url', 'asc'))
-        const snapshot = onSnapshot(urlsColRef, (snapshot) => {
-            setUrls(snapshot.docs.map(doc => ({
-                id: doc.id,
-                data: doc.data()
-            })))
+        fetchUrls()
 
-            setLoading(false)
-        })
-
-        return snapshot
+        // return
     }, [])
 
-    useEffect(() => {
-        console.log('errors=' + errors.length)
-    }, [errors])
+    const fetchUrls = () => {
+        console.log('fetching urls...')
+        axios.get(baseURL).then((response) => {
+            setUrls(response.data);
+            setLoading(false)
+        }).catch((error) => {
+            if (error.response) {
+                console.log(error.response.data); // => the response payload 
+            }
+        });
+    }
+
+    // useEffect(() => {
+    //     console.log('errors=' + errors.length)
+    // }, [errors])
 
     useEffect(() => {
         var x = 0;
         for (var i = 0; i < urls.length; i++) {
-            if (urls[i].data.checked === true) {
+            if (urls[i].checked === 1) {
                 x++
             }
         }
         settingCheckTotal(x)
-
-        console.log('urls.length=' + urls.length)
     }, [urls])
 
     useEffect(() => {
@@ -82,6 +86,7 @@ function Home() {
 
     const addModalHandle = () => {
         setAddModal(false);
+        fetchUrls()
     }
 
     // const [post, setPost] = React.useState(null);
@@ -91,7 +96,6 @@ function Home() {
     let [status, setStatus] = useState('');
     let [progressStyle, setProgressStyle] = useState('animated');
 
-    // console.log('urls.length=' + urls.length);
     useEffect(() => {
         if (progress >= 100) {
             setProgressStyle('')
@@ -112,12 +116,11 @@ function Home() {
         setStatus('')
     }
 
-    let hostname = window.location.hostname;
-
-
     const generate = async () => {
 
-        // console.log('currentUrl=' + currentUrl);
+        // console.log(urls[currentUrl].checked);
+
+        console.log('currentUrl=' + currentUrl + ', urls.length=' + urls.length);
         if (currentUrl < urls.length) {
             // console.log(urls[currentUrl].data.checked);
             // console.log('progress=' + p + ', currentUrl + 1=' + parseInt(currentUrl + 1));
@@ -128,39 +131,44 @@ function Home() {
 
             setProgress(p);
 
-            if (urls[currentUrl].data.checked === true) {
-                console.log('url=' + urls[currentUrl].data.url);
-                setStatus('Scanning ' + urls[currentUrl].data.url);
+            if (urls[currentUrl].checked === 1) {
+                console.log('url=' + urls[currentUrl].url);
+                setStatus('Scanning ' + urls[currentUrl].url);
 
                 // const urlDocRef = doc(db, 'details', urls[currentUrl].data.id)
                 try {
-                    // await deleteDoc(urlDocRef)
-                    var urldelete_query = db.collection('details')
-                        .where('urlid', '==', urls[currentUrl].data.id);
+                    let baseURL = process.env.REACT_APP_API_URL + "api/details.php/delete";
 
-                    urldelete_query.get().then(function (querySnapshot) {
-                        querySnapshot.forEach(function (doc) {
-                            doc.ref.delete();
+                    axios
+                        .post(baseURL, {
+                            id: urls[currentUrl].id,
+                        })
+                        .then((response) => {
+                            // console.log(response)
+                        }).catch(error => {
+                            console.log(error);
                         });
-                    });
+                    // await deleteDoc(urlDocRef)
+                    // var urldelete_query = db.collection('details')
+                    //     .where('urlid', '==', urls[currentUrl].id);
+
+                    // urldelete_query.get().then(function (querySnapshot) {
+                    //     querySnapshot.forEach(function (doc) {
+                    //         doc.ref.delete();
+                    //     });
+                    // });
                 } catch (err) {
                     console.log(err)
                 }
 
-                let url = urls[currentUrl].data.url;
+                let url = urls[currentUrl].url;
                 url = encodeURIComponent(url);
 
-                if (urls[currentUrl].data.folder !== "") {
-                    url = url + '&folder=' + encodeURIComponent(urls[currentUrl].data.folder);
+                if (urls[currentUrl].folder !== "") {
+                    url = url + '&folder=' + encodeURIComponent(urls[currentUrl].folder);
                 }
 
-                let baseURL = '';
-
-                if (hostname === 'localhost') {
-                    baseURL = "http://sitemap.local/generator.php?url=" + url;
-                } else {
-                    baseURL = "https://rekserver.com/sitemap/generator.php?url=" + url;
-                }
+                let baseURL = process.env.REACT_APP_API_URL + "generator.php?url=" + url;
 
                 var es = new EventSource(baseURL);
                 console.log(baseURL);
@@ -179,12 +187,17 @@ function Home() {
                     } else if (result.progress === 'url') {
                         console.log('url' + result.message);
                         if (saveUrls === true) {
-                            let newurl = db.collection("details").doc();
-                            await newurl.set({
-                                id: newurl.id,
-                                url: result.message,
-                                urlid: urls[currentUrl].data.id
-                            })
+                            let baseURL = process.env.REACT_APP_API_URL + "api/details.php/add";
+
+                            axios
+                                .post(baseURL, {
+                                    url: result.message,
+                                    urlid: urls[currentUrl].id
+                                })
+                                .then((response) => {
+                                }).catch(error => {
+                                    console.log(error);
+                                });
                         }
                     } else if (result.progress === 'error') {
                         setStatus(result.message);
@@ -192,12 +205,24 @@ function Home() {
                         setErrors(errors => [...errors, newError]);
 
                         if (saveUrls === true) {
-                            let newurl = db.collection("details").doc();
-                            await newurl.set({
-                                id: newurl.id,
-                                url: result.message,
-                                urlid: urls[currentUrl].data.id
-                            })
+                            let baseURL = process.env.REACT_APP_API_URL + "api/details.php/add";
+
+                            axios
+                                .post(baseURL, {
+                                    url: result.message,
+                                    urlid: urls[currentUrl].id
+                                })
+                                .then((response) => {
+                                }).catch(error => {
+                                    console.log(error);
+                                });
+
+                            // let newurl = db.collection("details").doc();
+                            // await newurl.set({
+                            //     id: newurl.id,
+                            //     url: result.message,
+                            //     urlid: urls[currentUrl].id
+                            // })
                         }
                     } else {
                         // console.log(result.progress);
@@ -236,61 +261,58 @@ function Home() {
 
     const handleClick = async (e) => {
         const { id, checked } = e.target;
+        console.log('check id=' + id)
         setIsCheck([...isCheck, id]);
         if (!checked) {
             setIsCheck(isCheck.filter(item => item !== id));
         }
 
-        // const handleCheck = async () => {
-        const urlDocRef = doc(db, 'urls', id)
-        // const check = (checked === true) ? false : true;
-        try {
-            await updateDoc(urlDocRef, {
-                checked: checked
+        let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/check";
+
+        axios
+            .post(baseURL, {
+                id: id,
+                checked: (checked === true) ? 1 : 0
             })
-        } catch (err) {
-            alert(err)
-        }
+            .then((response) => {
+                fetchUrls()
+            }).catch(error => {
+                console.log(error);
+            });
+
+        // const urlDocRef = doc(db, 'urls', id)
+        // try {
+        //     await updateDoc(urlDocRef, {
+        //         checked: checked
+        //     })
+        // } catch (err) {
+        //     alert(err)
         // }
     };
 
     const handleSelectAll = async (e) => {
         setIsCheckAll(!isCheckAll);
+        console.log('isCheckAll=' + isCheckAll)
         // setIsCheck(urls.map(li => li.id));
-        setIsCheck(urls.map(async (li) => {
-            const urlDocRef = doc(db, 'urls', li.id)
-            try {
-                await updateDoc(urlDocRef, {
-                    checked: !isCheckAll
-                })
-            } catch (err) {
-                alert(err)
-            }
-        }));
+        // setIsCheck(urls.map(async (li) => {
+        const baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/checkall"
+
+        axios
+            .post(baseURL, {
+                checked: (isCheckAll) ? 0 : 1
+            })
+            .then((response) => {
+                // setPost(response.data);
+                // modalCloseHandle()
+                fetchUrls()
+
+            }).catch(error => {
+                console.log(error);
+            });
+
+
         if (isCheckAll) {
             setIsCheck([]);
-        }
-    };
-
-    const handleDrop = async (droppedItem) => {
-        // Ignore drop outside droppable container
-        if (!droppedItem.destination) return;
-        var updatedList = [...urls];
-        // Remove dragged item
-        const [reorderedItem] = updatedList.splice(droppedItem.source.index, 1);
-        // Add dropped item
-        updatedList.splice(droppedItem.destination.index, 0, reorderedItem);
-        // Update State
-        setUrls(updatedList);
-        for (var i = 0; i < updatedList.length; i++) {
-            const urlDocRef = doc(db, 'urls', updatedList[i].id)
-            try {
-                await updateDoc(urlDocRef, {
-                    order: i
-                })
-            } catch (err) {
-                console.log(err)
-            }
         }
     };
 
@@ -354,33 +376,13 @@ function Home() {
                             <hr />
                             {loading ?
                                 <div className='text-center mb-4'><Spinner animation="border" /></div> :
-                                <DragDropContext onDragEnd={handleDrop}>
-                                    <Droppable droppableId="list-container">
-                                        {(provided) => (
-                                            <div
-                                                className="list-container mb-3"
-                                                {...provided.droppableProps}
-                                                ref={provided.innerRef}
-                                            >
-                                                {urls.map((_url, index) => (
-                                                    <Draggable key={_url.id} draggableId={_url.id} index={index}>
-                                                        {(provided) => (
-                                                            <div
-                                                                className="item-container"
-                                                                ref={provided.innerRef}
-                                                                {...provided.dragHandleProps}
-                                                                {...provided.draggableProps}
-                                                            >
-                                                                <Url key={_url.id} id={_url.id} url={_url.data.url} isChecked={isCheck.includes(_url.data.id)} checked={_url.data.checked} folder={_url.data.folder} handleClick={handleClick} />
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                ))}
-                                                {provided.placeholder}
-                                            </div>
-                                        )}
-                                    </Droppable>
-                                </DragDropContext>
+
+                                <div>{
+                                    urls.map((_url, index) => (
+                                        <Url key={_url.id} id={_url.id} url={_url.url} isChecked={isCheck.includes(_url.id)} checked={_url.checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} />
+                                    ))
+                                }
+                                </div>
                             }
                         </div>
                     </div>

@@ -5,14 +5,16 @@ import { db } from './firebase'
 import { doc, deleteDoc } from "firebase/firestore";
 import Checkbox from './Checkbox';
 import DetailsModal from './DetailsModal';
+import axios from 'axios';
 
-function Url({ id, url, isChecked, checked, folder, handleClick }) {
+function Url({ id, url, isChecked, checked, folder, handleClick, doneDelete }) {
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
     const [detailsModal, setDetailsModal] = useState(false);
 
     const handleClose = () => {
         setOpen(false)
+        doneDelete()
     }
 
     const handleCloseDelete = () => {
@@ -24,18 +26,31 @@ function Url({ id, url, isChecked, checked, folder, handleClick }) {
     }
 
     const submitDelete = async (id) => {
-        const urlDocRef = doc(db, 'urls', id)
+        // const urlDocRef = doc(db, 'urls', id)
 
         try {
-            await deleteDoc(urlDocRef)
+            let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/delete";
 
-            var urldelete_query = db.collection('details').where('urlid', '==', id);
-
-            urldelete_query.get().then(function (querySnapshot) {
-                querySnapshot.forEach(function (doc) {
-                    doc.ref.delete();
+            axios
+                .post(baseURL, {
+                    id: id,
+                })
+                .then((response) => {
+                    console.log(response);
+                    doneDelete()
+                }).catch(error => {
+                    console.log(error);
                 });
-            });
+
+            // await deleteDoc(urlDocRef)
+
+            // var urldelete_query = db.collection('details').where('urlid', '==', id);
+
+            // urldelete_query.get().then(function (querySnapshot) {
+            //     querySnapshot.forEach(function (doc) {
+            //         doc.ref.delete();
+            //     });
+            // });
         } catch (err) {
             alert(err)
         }
