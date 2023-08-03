@@ -1,8 +1,5 @@
 import React, { useState } from 'react'
 import { Modal, Button } from "react-bootstrap";
-import { db } from './firebase'
-import { doc, updateDoc } from "firebase/firestore";
-// import { async } from '@firebase/util';
 import axios from 'axios';
 
 const EditModal = ({ showModal, hideModal, id, data }) => {

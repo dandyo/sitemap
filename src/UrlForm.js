@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { db } from './firebase'
-import { Timestamp } from 'firebase/firestore'
 import { Modal, Button } from "react-bootstrap";
 import axios from 'axios';
 
@@ -25,27 +23,6 @@ function UrlForm({ showModal, modalCloseHandle }) {
             }).catch(error => {
                 console.log(error);
             });
-
-        // try {
-
-        // var newurl = db.collection("urls").doc();
-        // await newurl.set({
-        //     id: newurl.id,
-        //     url: urlString,
-        //     folder: folder,
-        //     checked: true,
-        //     order: 0,
-        //     datecreated: Timestamp.now()
-        // })
-        // await addDoc(collection(db, 'urls'), {
-        //     url: urlString,
-        //     folder: folder,
-        //     datecreated: Timestamp.now()
-        // })
-        // modalCloseHandle()
-        // } catch (err) {
-        //     alert(err)
-        // }
     }
 
     return (

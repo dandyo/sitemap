@@ -1,19 +1,17 @@
 
 import { useNavigate } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
-// import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
-// import { db } from './firebase'
+import React, { useState, useEffect, useContext } from 'react';
 import Url from './Url';
-import { UserAuth } from './AuthContext';
+
+import { UserContext } from './AuthContext'
 import UrlForm from './UrlForm';
 import { Modal, ProgressBar, Spinner, Button } from 'react-bootstrap';
 import Checkbox from './Checkbox';
-// import { doc, updateDoc } from "firebase/firestore";
-// import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import axios from 'axios';
 
 function Home() {
-    const { logout } = UserAuth();
+    // const { logout } = UserAuth();
+    const { user, logout } = useContext(UserContext);
     const navigate = useNavigate();
     let [checkTotal, setCheckTotal] = useState(0)
 
@@ -23,16 +21,6 @@ function Home() {
     let [errors, setErrors] = useState([]);
 
     const [saveUrls, setSaveUrls] = useState(true);
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-            navigate('/');
-            console.log('You are logged out')
-        } catch (e) {
-            console.log(e.message);
-        }
-    };
 
     const [urls, setUrls] = useState([])
     let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/list";
@@ -55,10 +43,6 @@ function Home() {
             }
         });
     }
-
-    // useEffect(() => {
-    //     console.log('errors=' + errors.length)
-    // }, [errors])
 
     useEffect(() => {
         var x = 0;
@@ -346,7 +330,7 @@ function Home() {
                                         <i className='bi bi-toggle-off'></i>
                                     }
                                     &nbsp;Save Scanned Urls</span></li>
-                                <li><span className="dropdown-item" onClick={handleLogout}><i className='bi bi-box-arrow-right'></i> Logout</span></li>
+                                <li><span className="dropdown-item" onClick={logout}><i className='bi bi-box-arrow-right'></i> Logout</span></li>
                             </ul>
                         </div>
                     </div>
@@ -393,7 +377,6 @@ function Home() {
                     <div className='mb-4'>{status}</div>
 
                     <button className='btn btn-primary mb-4' onClick={() => { reset(); generate(); }}>Generate</button>
-                    {/* <p><button className='btn btn-link' onClick={handleLogout}>Logout</button></p> */}
 
                     {addModal && <UrlForm showModal={addModal} modalCloseHandle={addModalHandle} />}
 

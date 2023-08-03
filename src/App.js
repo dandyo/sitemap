@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import "@fancyapps/ui/dist/fancybox/fancybox.css"
-import { AuthProvider } from './AuthContext';
-import PrivateRoute from './PrivateRoute';
+import { UserContext } from './AuthContext';
+// import PrivateRoute from './PrivateRoute';
 
 import Login from './Login';
 import Home from './Home';
@@ -14,19 +14,27 @@ function App() {
     document.title = 'Sitemap Generator';
   }, []);
 
+  const { user } = useContext(UserContext);
+
   // render() {
   return (
     <div className="App">
       <Router basename='sitemap'>
-        <AuthProvider>
-          <Routes>
-            <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path='/generate' element={<PrivateRoute><Generate /></PrivateRoute>} />
-            <Route path='/test' element={<PrivateRoute><Test /></PrivateRoute>} />
-            <Route path="/login" element={<Login />} />
-          </Routes>
-        </AuthProvider>
+        <Routes>
+          {user &&
+            <>
+              <Route path="/" element={<Home />} />
+              <Route path="/generate" element={<Generate />} />
+              <Route path="/test" element={<Test />} />
+            </>
+          }
+          {!user &&
+            <>
+              <Route path="/login" element={<Login />} />
+            </>
+          }
+          <Route path="*" element={<Navigate to={user ? '/' : '/login'} />} />
+        </Routes>
       </Router>
     </div >
   );
