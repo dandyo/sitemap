@@ -7,7 +7,7 @@ import Checkbox from './Checkbox';
 import DetailsModal from './DetailsModal';
 import axios from 'axios';
 
-function Url({ id, url, isChecked, checked, folder, handleClick, doneDelete }) {
+function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDelete, current }) {
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
     const [detailsModal, setDetailsModal] = useState(false);
@@ -71,7 +71,7 @@ function Url({ id, url, isChecked, checked, folder, handleClick, doneDelete }) {
 
     return (
         <>
-            <div className="url-list-item" key={id}>
+            <div className={'url-list-item ' + ((current === index) ? 'current ' : '') + (checked ? ' checked' : '')} data-key={index}>
                 <span className="drag-handle"><i className="bi bi-grip-vertical"></i></span>
                 {/* <div className="form-check">
                     <input className="form-check-input" type="checkbox" value={id} id={'url-' + id} checked={checked} onChange={handleClick} />

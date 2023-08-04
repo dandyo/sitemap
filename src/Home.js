@@ -20,7 +20,9 @@ function Home() {
     let [isCheckAll, setIsCheckAll] = useState(false);
     const [isCheck, setIsCheck] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false)
     let [errors, setErrors] = useState([]);
+    let [activeUrl, setActiveUrl] = useState('');
 
     const [saveUrls, setSaveUrls] = useState(true);
 
@@ -40,8 +42,6 @@ function Home() {
 
     useEffect(() => {
         fetchUrls()
-
-        // return
     }, [])
 
     const fetchUrls = () => {
@@ -101,11 +101,12 @@ function Home() {
             setProgressStyle('')
             setStatus('Done generating sitemaps. ' + errors.length + ' ' + ((errors.length === 1) ? ' error' : 'errors'))
             setCurrentUrl(0)
+            setGenerating(false)
         } else {
             setProgressStyle('animated')
         }
 
-        console.log('progress=' + progress)
+        // console.log('progress=' + progress)
     }, [progress, errors])
 
     const reset = () => {
@@ -114,28 +115,25 @@ function Home() {
         setCurrentUrl(0)
         setErrors([])
         setStatus('')
+        setGenerating(false)
     }
 
+    // const delay = ms => new Promise(res => setTimeout(res, ms));
+
     const generate = async () => {
-
+        setGenerating(true)
         // console.log(urls[currentUrl].checked);
+        // currentUrl++
+        // setCurrentUrl(currentUrl)
+        let p = (currentUrl / urls.length) * 100
+        setProgress(p);
 
-        console.log('currentUrl=' + currentUrl + ', urls.length=' + urls.length);
+        // console.log('currentUrl=' + currentUrl + ', urls.length=' + urls.length);
         if (currentUrl < urls.length) {
-            // console.log(urls[currentUrl].data.checked);
-            // console.log('progress=' + p + ', currentUrl + 1=' + parseInt(currentUrl + 1));
-            // console.log('url=' + urls[currentUrl].data.url);
-
-            // let p = (100 / urls.length) * (currentUrl + 1)
-            let p = ((currentUrl + 1) / urls.length) * 100
-
-            setProgress(p);
 
             if (urls[currentUrl].checked === 1) {
                 console.log('url=' + urls[currentUrl].url);
-                setStatus('Scanning ' + urls[currentUrl].url);
-
-                // const urlDocRef = doc(db, 'details', urls[currentUrl].data.id)
+                setActiveUrl(urls[currentUrl].url)
                 try {
                     let baseURL = process.env.REACT_APP_API_URL + "api/details.php/delete";
 
@@ -148,15 +146,6 @@ function Home() {
                         }).catch(error => {
                             console.log(error);
                         });
-                    // await deleteDoc(urlDocRef)
-                    // var urldelete_query = db.collection('details')
-                    //     .where('urlid', '==', urls[currentUrl].id);
-
-                    // urldelete_query.get().then(function (querySnapshot) {
-                    //     querySnapshot.forEach(function (doc) {
-                    //         doc.ref.delete();
-                    //     });
-                    // });
                 } catch (err) {
                     console.log(err)
                 }
@@ -171,7 +160,6 @@ function Home() {
                 let baseURL = process.env.REACT_APP_API_URL + "generator.php?url=" + url;
 
                 var es = new EventSource(baseURL);
-                console.log(baseURL);
 
                 es.addEventListener('message', async function (e) {
                     var result = JSON.parse(e.data);
@@ -216,17 +204,10 @@ function Home() {
                                 }).catch(error => {
                                     console.log(error);
                                 });
-
-                            // let newurl = db.collection("details").doc();
-                            // await newurl.set({
-                            //     id: newurl.id,
-                            //     url: result.message,
-                            //     urlid: urls[currentUrl].id
-                            // })
                         }
                     } else {
                         // console.log(result.progress);
-                        console.log(result.message);
+                        // console.log(result.message);
                         setStatus(result.message);
 
                         if (result.message === 'url') {
@@ -261,7 +242,7 @@ function Home() {
 
     const handleClick = async (e) => {
         const { id, checked } = e.target;
-        console.log('check id=' + id)
+        // console.log('check id=' + id)
         setIsCheck([...isCheck, id]);
         if (!checked) {
             setIsCheck(isCheck.filter(item => item !== id));
@@ -279,20 +260,11 @@ function Home() {
             }).catch(error => {
                 console.log(error);
             });
-
-        // const urlDocRef = doc(db, 'urls', id)
-        // try {
-        //     await updateDoc(urlDocRef, {
-        //         checked: checked
-        //     })
-        // } catch (err) {
-        //     alert(err)
-        // }
     };
 
     const handleSelectAll = async (e) => {
         setIsCheckAll(!isCheckAll);
-        console.log('isCheckAll=' + isCheckAll)
+        // console.log('isCheckAll=' + isCheckAll)
         // setIsCheck(urls.map(li => li.id));
         // setIsCheck(urls.map(async (li) => {
         const baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/checkall"
@@ -352,7 +324,7 @@ function Home() {
                     </div>
 
                     <p>{urls.length} websites to generate</p>
-                    <div className="url-list-wrap">
+                    <div className={"url-list-wrap " + ((generating === true) ? "generating" : "")}>
                         <div>
                             <div className="d-flex align-items-center">
                                 {/* <div className="form-check">
@@ -379,7 +351,7 @@ function Home() {
 
                                 <div>{
                                     urls.map((_url, index) => (
-                                        <Url key={_url.id} id={_url.id} url={_url.url} isChecked={isCheck.includes(_url.id)} checked={_url.checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} />
+                                        <Url key={index} index={index} id={_url.id} url={_url.url} isChecked={isCheck.includes(_url.id)} checked={_url.checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} current={currentUrl} />
                                     ))
                                 }
                                 </div>
@@ -387,12 +359,14 @@ function Home() {
                         </div>
                     </div>
 
-                    {progressStyle === 'animated' ? <ProgressBar now={progress} animated className='mb-2' /> : <ProgressBar now={progress} className='mb-2' />}
-                    {/* <button onClick={test}>click</button> */}
+                    <hr />
 
+                    {(progressStyle === 'animated' && generating === true) && <ProgressBar now={progress} animated className='mb-2' />}
+
+                    {generating && <div className='mb-2'>{'Scanning ' + activeUrl}</div>}
                     <div className='mb-4'>{status}</div>
 
-                    <button className='btn btn-primary mb-4' onClick={() => { reset(); generate(); }}>Generate</button>
+                    <button className='btn btn-primary mb-4' onClick={() => { reset(); generate(); }} disabled={generating}>Generate</button>
                     {/* <p><button className='btn btn-link' onClick={handleLogout}>Logout</button></p> */}
 
                     {addModal && <UrlForm showModal={addModal} modalCloseHandle={addModalHandle} />}
