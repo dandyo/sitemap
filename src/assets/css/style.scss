@@ -169,3 +169,10 @@ body {
         cursor: pointer;
     }
 }
+
+.settings-tab {
+    .tab-pane {
+        max-height: 45vh;
+        overflow: auto;
+    }
+}

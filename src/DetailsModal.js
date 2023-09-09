@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Spinner } from "react-bootstrap";
-import { collection, query, orderBy, onSnapshot, where } from "firebase/firestore"
-import { db } from './firebase'
+// import { collection, query, orderBy, onSnapshot, where } from "firebase/firestore"
+// import { db } from './firebase'
 import axios from 'axios';
 
 const DetailsModal = ({ showModal, hideModal, confirmModal, id }) => {

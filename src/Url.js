@@ -7,7 +7,7 @@ import Checkbox from './Checkbox';
 import DetailsModal from './DetailsModal';
 import axios from 'axios';
 
-function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDelete, current }) {
+function Url({ index, id, url, checked, folder, handleClick, doneDelete, current }) {
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
     const [detailsModal, setDetailsModal] = useState(false);
@@ -86,7 +86,6 @@ function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDele
                     id={id}
                     handleClick={handleClick}
                     folder={folder}
-                    isChecked={isChecked}
                     checked={checked} />
 
                 <div className="btn-wrap">

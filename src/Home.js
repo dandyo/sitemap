@@ -8,6 +8,7 @@ import { UserAuth } from './AuthContext';
 import UrlForm from './UrlForm';
 import { Modal, ProgressBar, Spinner, Button } from 'react-bootstrap';
 import Checkbox from './Checkbox';
+import ListSettingsModal from './ListSettings';
 // import { doc, updateDoc } from "firebase/firestore";
 // import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import axios from 'axios';
@@ -25,6 +26,16 @@ function Home() {
     let [activeUrl, setActiveUrl] = useState('');
 
     const [saveUrls, setSaveUrls] = useState(true);
+    const [types, setTypes] = useState([])
+    const [type, setType] = useState('')
+
+    const [dailyUrls, setDailyUrls] = useState('')
+    const [monthlyUrls, setMonthlyUrls] = useState('')
+    const [asNeededUrls, setAsNeededUrls] = useState('')
+
+    const [dailyCheckedUrls, setDailyCheckedUrls] = useState([])
+    const [monthlyCheckedUrls, setMonthlyCheckedUrls] = useState([])
+    const [asNeededCheckedUrls, setAsNeededCheckedUrls] = useState([])
 
     const handleLogout = async () => {
         try {
@@ -61,13 +72,21 @@ function Home() {
     // }, [errors])
 
     useEffect(() => {
-        var x = 0;
-        for (var i = 0; i < urls.length; i++) {
-            if (urls[i].checked === 1) {
-                x++
+        if (loading === false) {
+            var x = 0;
+            var _isCheck = []
+            for (var i = 0; i < urls.length; i++) {
+                if (urls[i].checked === 1) {
+                    x++
+                    // _isCheck.push('' + urls[i].id + '')
+                    _isCheck = [..._isCheck, '' + urls[i].id + '']
+                    console.log('urls[i].checked === 1')
+                }
             }
+            setIsCheck(_isCheck)
+            settingCheckTotal(x)
+            // console.log(_isCheck)
         }
-        settingCheckTotal(x)
     }, [urls])
 
     useEffect(() => {
@@ -131,7 +150,8 @@ function Home() {
         // console.log('currentUrl=' + currentUrl + ', urls.length=' + urls.length);
         if (currentUrl < urls.length) {
 
-            if (urls[currentUrl].checked === 1) {
+            // if (urls[currentUrl].checked === 1) {
+            if (isCheck.includes('' + urls[currentUrl].id + '')) {
                 console.log('url=' + urls[currentUrl].url);
                 setActiveUrl(urls[currentUrl].url)
                 try {
@@ -241,8 +261,9 @@ function Home() {
     }
 
     const handleClick = async (e) => {
+        e.preventDefault()
         const { id, checked } = e.target;
-        // console.log('check id=' + id)
+        console.log('check id=' + id)
         setIsCheck([...isCheck, id]);
         if (!checked) {
             setIsCheck(isCheck.filter(item => item !== id));
@@ -264,6 +285,7 @@ function Home() {
 
     const handleSelectAll = async (e) => {
         setIsCheckAll(!isCheckAll);
+        setType('')
         // console.log('isCheckAll=' + isCheckAll)
         // setIsCheck(urls.map(li => li.id));
         // setIsCheck(urls.map(async (li) => {
@@ -286,7 +308,74 @@ function Home() {
         if (isCheckAll) {
             setIsCheck([]);
         }
-    };
+    }
+
+    const handleSelectType = async (e) => {
+        const { id } = e.target;
+        // console.log('type=' + id)
+        setIsCheckAll(false);
+        setType(id)
+
+        let baseTypesApi = process.env.REACT_APP_API_URL + "api/types.php/list";
+        axios.get(baseTypesApi).then((response) => {
+            if (response.data) {
+                setTypes(response.data)
+            }
+        }).catch((error) => {
+            if (error.response) {
+                console.log(error.response.data);
+            }
+        });
+    }
+
+    useEffect(() => {
+        separateTypes()
+    }, [types])
+
+    const separateTypes = () => {
+        types.map((_type, index) => {
+            if (_type.type === 'daily') {
+                setDailyUrls(_type.sitemap_id)
+            }
+            if (_type.type === 'monthly') {
+                setMonthlyUrls(_type.sitemap_id)
+            }
+            if (_type.type === 'asneeded') {
+                setAsNeededUrls(_type.sitemap_id)
+            }
+        })
+    }
+
+    useEffect(() => {
+        let _checkedUrls = []
+        if (dailyUrls !== '' && type === 'daily') {
+            console.log('daily')
+            if (dailyUrls.indexOf(',') != -1) {
+                _checkedUrls = dailyUrls.split(',')
+            } else {
+                _checkedUrls = [dailyUrls]
+            }
+            setIsCheck(_checkedUrls)
+        }
+        if (monthlyUrls !== '' && type === 'monthly') {
+            console.log('monthly')
+            if (monthlyUrls.indexOf(',') != -1) {
+                _checkedUrls = monthlyUrls.split(',')
+            } else {
+                _checkedUrls = [monthlyUrls]
+            }
+            setIsCheck(_checkedUrls)
+        }
+        if (asNeededUrls !== '' && type === 'asneeded') {
+            console.log('as needed')
+            if (asNeededUrls.indexOf(',') != -1) {
+                _checkedUrls = asNeededUrls.split(',')
+            } else {
+                _checkedUrls = [asNeededUrls]
+            }
+            setIsCheck(_checkedUrls)
+        }
+    }, [dailyUrls, monthlyUrls, asNeededUrls, type])
 
     const handleSaveUrls = () => {
         if (saveUrls === true) {
@@ -299,6 +388,11 @@ function Home() {
     const [showErrorsModal, setShowErrorsModal] = useState(false)
     const closeErrorsModal = () => {
         setShowErrorsModal(false);
+    }
+
+    const [showListSettings, setShowListSettings] = useState(false)
+    const handleShowListSettings = () => {
+        setShowListSettings(false)
     }
 
     return (
@@ -318,6 +412,7 @@ function Home() {
                                         <i className='bi bi-toggle-off'></i>
                                     }
                                     &nbsp;Save Scanned Urls</span></li>
+                                <li><span className="dropdown-item" onClick={() => setShowListSettings(true)}><i className='bi bi-check2-square'></i> List Settings</span></li>
                                 <li><span className="dropdown-item" onClick={handleLogout}><i className='bi bi-box-arrow-right'></i> Logout</span></li>
                             </ul>
                         </div>
@@ -333,13 +428,37 @@ function Home() {
                                         Select All
                                     </label>
                                 </div> */}
-                                <Checkbox
-                                    url="Select All"
-                                    id="selectAll"
-                                    handleClick={handleSelectAll}
-                                    folder={''}
-                                    isChecked={isCheckAll}
-                                    checked={isCheckAll} />
+                                <div className='d-flex'>
+                                    <Checkbox
+                                        url="Select All"
+                                        id="selectAll"
+                                        handleClick={handleSelectAll}
+                                        folder={''}
+                                        isChecked={isCheckAll}
+                                        checked={isCheckAll}
+                                        moreClass={'me-3'} />
+                                    <Checkbox
+                                        url="Daily"
+                                        id="daily"
+                                        handleClick={handleSelectType}
+                                        folder={''}
+                                        checked={(type === 'daily') ? true : false}
+                                        moreClass={'me-3'} />
+                                    <Checkbox
+                                        url="Monthly"
+                                        id="monthly"
+                                        handleClick={handleSelectType}
+                                        checked={(type === 'monthly') ? true : false}
+                                        folder={''}
+                                        moreClass={'me-3'} />
+                                    <Checkbox
+                                        url="As Needed"
+                                        id="asneeded"
+                                        handleClick={handleSelectType}
+                                        checked={(type === 'asneeded') ? true : false}
+                                        folder={''}
+                                        moreClass={'me-3'} />
+                                </div>
 
                                 <div className="ms-auto">
                                     <button className="btn py-0 px-1 fw-bold" onClick={() => setAddModal(true)}><i className="bi bi-plus-lg"></i></button>
@@ -350,9 +469,11 @@ function Home() {
                                 <div className='text-center mb-4'><Spinner animation="border" /></div> :
 
                                 <div>{
-                                    urls.map((_url, index) => (
-                                        <Url key={index} index={index} id={_url.id} url={_url.url} isChecked={isCheck.includes(_url.id)} checked={_url.checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} current={currentUrl} />
-                                    ))
+                                    urls.map((_url, index) => {
+                                        let checked = isCheck.includes('' + _url.id + '')
+                                        return <Url key={index} index={index} id={_url.id} url={_url.url} checked={checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} current={currentUrl} />
+
+                                    })
                                 }
                                 </div>
                             }
@@ -392,6 +513,8 @@ function Home() {
                             </Modal.Footer>
                         </Modal>
                     }
+
+                    {showListSettings && <ListSettingsModal showModal={showListSettings} hideModal={handleShowListSettings} />}
                 </div>
             </div>
         </>
