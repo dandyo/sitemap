@@ -6,11 +6,14 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import "bootstrap/dist/js/bootstrap.bundle";
 import './assets/css/style.scss';
+import UserContextProvider from './AuthContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   // <React.StrictMode>
-  <App />
+  <UserContextProvider>
+    <App />
+  </UserContextProvider>
   // </React.StrictMode>
 );
 

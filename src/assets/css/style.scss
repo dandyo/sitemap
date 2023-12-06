@@ -61,7 +61,7 @@ body {
 
     .form-check {
         .form-check-label {
-            max-width: 320px;
+            max-width: calc(100vw - 160px);
             text-overflow: ellipsis;
             overflow: hidden;
         }
@@ -98,6 +98,7 @@ body {
 
 .login-wrap {
     max-width: 400px;
+    width: 100%;
     margin: 0 auto;
     padding: 20px;
     border-radius: 6px;
@@ -114,18 +115,27 @@ body {
 
     .btn {
         position: absolute;
-        right: 0;
+        right: 26px;
+
+        @media (min-width: 768px) {
+            right: 0;
+        }
     }
 }
 
 .error-wrap {
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 16px;
+    right: 4px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     text-align: left;
+
+    @media (min-width: 768px) {
+        top: 10px;
+        right: 10px;
+    }
 
     .btn {
         color: #dc3545;

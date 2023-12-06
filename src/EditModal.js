@@ -1,8 +1,6 @@
 import React, { useState } from 'react'
 import { Modal, Button } from "react-bootstrap";
-import { db } from './firebase'
-import { doc, updateDoc } from "firebase/firestore";
-// import { async } from '@firebase/util';
+import axios from 'axios';
 
 const EditModal = ({ showModal, hideModal, id, data }) => {
     const [url, setUrl] = useState(data.url);
@@ -10,16 +8,31 @@ const EditModal = ({ showModal, hideModal, id, data }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        const urlDocRef = doc(db, 'urls', id)
-        try {
-            await updateDoc(urlDocRef, {
+
+        let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/update";
+
+        axios
+            .post(baseURL, {
+                id: id,
                 url: url,
                 folder: folder
             })
-            hideModal()
-        } catch (err) {
-            alert(err)
-        }
+            .then((response) => {
+                hideModal()
+                console.log(response);
+            }).catch(error => {
+                console.log(error);
+            });
+        // const urlDocRef = doc(db, 'urls', id)
+        // try {
+        //     await updateDoc(urlDocRef, {
+        //         url: url,
+        //         folder: folder
+        //     })
+        //     hideModal()
+        // } catch (err) {
+        //     alert(err)
+        // }
 
     }
 
