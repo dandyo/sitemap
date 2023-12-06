@@ -169,7 +169,7 @@ function Home() {
                         setCurrentUrl(currentUrl++);
                         generate();
                     } else if (result.progress === 'url') {
-                        console.log('url' + result.message);
+                        console.log('url: ' + result.message);
                         if (saveUrls === true) {
                             let baseURL = process.env.REACT_APP_API_URL + "api/details.php/add";
 
