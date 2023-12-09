@@ -4,7 +4,7 @@ import axios from 'axios';
 export const UserContext = createContext();
 
 export const Axios = axios.create({
-    baseURL: process.env.REACT_APP_API_URL + "api/"
+    baseURL: process.env.REACT_APP_API_URL
 });
 
 export const UserContextProvider = ({ children }) => {
@@ -14,10 +14,13 @@ export const UserContextProvider = ({ children }) => {
     const loginUser = async ({ email, password }) => {
         setWait(true);
         try {
-            const { data } = await Axios.post('user.php', {
+            const { data } = await Axios.post('users/signin', {
                 email,
                 password
             });
+
+            console.log(data)
+
             if (data.success && data.token) {
                 localStorage.setItem('loginToken', data.token);
                 setWait(false);
@@ -30,14 +33,14 @@ export const UserContextProvider = ({ children }) => {
             setWait(false);
             return { success: 0, message: 'Server Error!' };
         }
-
     }
 
     const loggedInCheck = async () => {
         const loginToken = localStorage.getItem('loginToken');
         Axios.defaults.headers.common['Authorization'] = 'Bearer ' + loginToken;
+
         if (loginToken) {
-            const { data } = await Axios.get('get-user.php');
+            const { data } = await Axios.get('users');
             if (data.success && data.user) {
                 setUser(data.user);
                 return;
