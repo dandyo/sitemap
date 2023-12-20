@@ -9,17 +9,16 @@ const EditModal = ({ showModal, hideModal, id, data }) => {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/update";
+        let baseURL = process.env.REACT_APP_API_URL + "urls";
 
         axios
-            .post(baseURL, {
+            .patch(baseURL, {
                 id: id,
                 url: url,
                 folder: folder
             })
             .then((response) => {
                 hideModal()
-                console.log(response);
             }).catch(error => {
                 console.log(error);
             });

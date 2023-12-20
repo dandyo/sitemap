@@ -47,6 +47,17 @@ body {
         padding: 0;
         margin: 0;
     }
+
+    &.generating {
+        .current {
+            &.checked {
+                &:after {
+                    content: "";
+                    display: block;
+                }
+            }
+        }
+    }
 }
 
 .url-list-item {
@@ -116,9 +127,30 @@ body {
     .btn {
         position: absolute;
         right: 26px;
+        text-decoration: none;
 
         @media (min-width: 768px) {
             right: 0;
+        }
+    }
+
+    .action--left {
+        left: 0;
+        right: auto;
+
+        &.btn {
+            padding-left: 0;
+        }
+    }
+
+    .btn-icon {
+        color: inherit;
+        display: inline-flex;
+        align-items: center;
+
+        .bi {
+            font-size: 18px;
+            margin-right: 5px;
         }
     }
 }
@@ -156,5 +188,12 @@ body {
 .dropdown-menu {
     span {
         cursor: pointer;
+    }
+}
+
+.settings-tab {
+    .tab-pane {
+        max-height: 45vh;
+        overflow: auto;
     }
 }

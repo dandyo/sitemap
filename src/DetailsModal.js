@@ -6,7 +6,7 @@ const DetailsModal = ({ showModal, hideModal, confirmModal, id }) => {
     const [urls, setUrls] = useState([])
     const [loading, setLoading] = useState(true);
 
-    let baseURL = process.env.REACT_APP_API_URL + "api/details.php/list?id=" + id;
+    let baseURL = process.env.REACT_APP_API_URL + "details?id=" + id;
 
     useEffect(() => {
         fetchUrls()

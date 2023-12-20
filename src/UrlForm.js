@@ -10,7 +10,7 @@ function UrlForm({ showModal, modalCloseHandle }) {
 
         e.preventDefault();
 
-        let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/add";
+        let baseURL = process.env.REACT_APP_API_URL + "urls";
 
         axios
             .post(baseURL, {

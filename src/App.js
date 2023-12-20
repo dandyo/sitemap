@@ -8,6 +8,8 @@ import Login from './Login';
 import Home from './Home';
 import Test from './Test';
 import Generate from './Generate';
+import ManageUsers from './ManageUsers';
+import { UrlsContextProvider } from './context/UrlContext';
 
 function App() {
   useEffect(() => {
@@ -23,9 +25,10 @@ function App() {
         <Routes>
           {user &&
             <>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<UrlsContextProvider><Home /></UrlsContextProvider>} />
               <Route path="/generate" element={<Generate />} />
               <Route path="/test" element={<Test />} />
+              <Route path="/users" element={<ManageUsers />} />
             </>
           }
           {!user &&

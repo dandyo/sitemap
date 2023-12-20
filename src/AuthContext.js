@@ -19,8 +19,6 @@ export const UserContextProvider = ({ children }) => {
                 password
             });
 
-            console.log(data)
-
             if (data.success && data.token) {
                 localStorage.setItem('loginToken', data.token);
                 setWait(false);

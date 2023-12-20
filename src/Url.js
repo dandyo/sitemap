@@ -5,7 +5,7 @@ import Checkbox from './Checkbox';
 import DetailsModal from './DetailsModal';
 import axios from 'axios';
 
-function Url({ id, url, isChecked, checked, folder, handleClick, doneDelete }) {
+function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDelete, current }) {
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
     const [detailsModal, setDetailsModal] = useState(false);
@@ -27,14 +27,11 @@ function Url({ id, url, isChecked, checked, folder, handleClick, doneDelete }) {
         // const urlDocRef = doc(db, 'urls', id)
 
         try {
-            let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/delete";
+            let baseURL = process.env.REACT_APP_API_URL + "urls/delete/" + id;
 
             axios
-                .post(baseURL, {
-                    id: id,
-                })
+                .delete(baseURL)
                 .then((response) => {
-                    console.log(response);
                     doneDelete()
                 }).catch(error => {
                     console.log(error);
@@ -47,7 +44,7 @@ function Url({ id, url, isChecked, checked, folder, handleClick, doneDelete }) {
 
     return (
         <>
-            <div className="url-list-item" key={id}>
+            <div className={'url-list-item ' + ((current === index) ? 'current ' : '') + (checked ? ' checked' : '')} data-key={index}>
                 <span className="drag-handle"><i className="bi bi-grip-vertical"></i></span>
 
                 <Checkbox

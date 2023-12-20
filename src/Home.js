@@ -1,5 +1,5 @@
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, useContext } from 'react';
 import Url from './Url';
 
@@ -7,6 +7,7 @@ import { UserContext } from './AuthContext'
 import UrlForm from './UrlForm';
 import { Modal, ProgressBar, Spinner, Button } from 'react-bootstrap';
 import Checkbox from './Checkbox';
+import ListSettingsModal from './ListSettings';
 import axios from 'axios';
 
 function Home() {
@@ -18,18 +19,28 @@ function Home() {
     let [isCheckAll, setIsCheckAll] = useState(false);
     const [isCheck, setIsCheck] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false)
     let [errors, setErrors] = useState([]);
+    let [activeUrl, setActiveUrl] = useState('');
 
     const [saveUrls, setSaveUrls] = useState(true);
+    const [types, setTypes] = useState([])
+    const [type, setType] = useState('')
+
+    const [dailyUrls, setDailyUrls] = useState('')
+    const [monthlyUrls, setMonthlyUrls] = useState('')
+    const [asNeededUrls, setAsNeededUrls] = useState('')
+
+    const [dailyCheckedUrls, setDailyCheckedUrls] = useState([])
+    const [monthlyCheckedUrls, setMonthlyCheckedUrls] = useState([])
+    const [asNeededCheckedUrls, setAsNeededCheckedUrls] = useState([])
 
     const [urls, setUrls] = useState([])
-    let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/list";
+    let baseURL = process.env.REACT_APP_API_URL + "urls";
     // console.log(baseURL)
 
     useEffect(() => {
         fetchUrls()
-
-        // return
     }, [])
 
     const fetchUrls = () => {
@@ -45,13 +56,21 @@ function Home() {
     }
 
     useEffect(() => {
-        var x = 0;
-        for (var i = 0; i < urls.length; i++) {
-            if (urls[i].checked === 1) {
-                x++
+        if (loading === false) {
+            var x = 0;
+            var _isCheck = []
+            for (var i = 0; i < urls.length; i++) {
+                if (urls[i].checked === 1) {
+                    x++
+                    // _isCheck.push('' + urls[i].id + '')
+                    _isCheck = [..._isCheck, '' + urls[i].id + '']
+                    console.log('urls[i].checked === 1')
+                }
             }
+            setIsCheck(_isCheck)
+            settingCheckTotal(x)
+            // console.log(_isCheck)
         }
-        settingCheckTotal(x)
     }, [urls])
 
     useEffect(() => {
@@ -85,11 +104,12 @@ function Home() {
             setProgressStyle('')
             setStatus('Done generating sitemaps. ' + errors.length + ' ' + ((errors.length === 1) ? ' error' : 'errors'))
             setCurrentUrl(0)
+            setGenerating(false)
         } else {
             setProgressStyle('animated')
         }
 
-        console.log('progress=' + progress)
+        // console.log('progress=' + progress)
     }, [progress, errors])
 
     const reset = () => {
@@ -98,11 +118,13 @@ function Home() {
         setCurrentUrl(0)
         setErrors([])
         setStatus('')
+        setGenerating(false)
     }
 
     const generate = async () => {
-
-        // console.log(urls[currentUrl].checked);
+        setGenerating(true)
+        let p = (currentUrl / urls.length) * 100
+        setProgress(p);
 
         console.log('currentUrl=' + currentUrl + ', urls.length=' + urls.length);
         if (currentUrl < urls.length) {
@@ -111,17 +133,14 @@ function Home() {
             // console.log('url=' + urls[currentUrl].data.url);
 
             // let p = (100 / urls.length) * (currentUrl + 1)
-            let p = ((currentUrl + 1) / urls.length) * 100
+            // let p = ((currentUrl + 1) / urls.length) * 100
 
-            setProgress(p);
+            // setProgress(p);
 
-            if (urls[currentUrl].checked === 1) {
-                console.log('url=' + urls[currentUrl].url);
-                setStatus('Scanning ' + urls[currentUrl].url);
-
-                // const urlDocRef = doc(db, 'details', urls[currentUrl].data.id)
+            if (isCheck.includes('' + urls[currentUrl].id + '')) {
+                setActiveUrl(urls[currentUrl].url)
                 try {
-                    let baseURL = process.env.REACT_APP_API_URL + "api/details.php/delete";
+                    let baseURL = process.env.REACT_APP_API_URL + "urls/delete";
 
                     axios
                         .post(baseURL, {
@@ -132,15 +151,6 @@ function Home() {
                         }).catch(error => {
                             console.log(error);
                         });
-                    // await deleteDoc(urlDocRef)
-                    // var urldelete_query = db.collection('details')
-                    //     .where('urlid', '==', urls[currentUrl].id);
-
-                    // urldelete_query.get().then(function (querySnapshot) {
-                    //     querySnapshot.forEach(function (doc) {
-                    //         doc.ref.delete();
-                    //     });
-                    // });
                 } catch (err) {
                     console.log(err)
                 }
@@ -155,7 +165,6 @@ function Home() {
                 let baseURL = process.env.REACT_APP_API_URL + "generator.php?url=" + url;
 
                 var es = new EventSource(baseURL);
-                console.log(baseURL);
 
                 es.addEventListener('message', async function (e) {
                     var result = JSON.parse(e.data);
@@ -171,7 +180,7 @@ function Home() {
                     } else if (result.progress === 'url') {
                         console.log('url: ' + result.message);
                         if (saveUrls === true) {
-                            let baseURL = process.env.REACT_APP_API_URL + "api/details.php/add";
+                            let baseURL = process.env.REACT_APP_API_URL + "details/add";
 
                             axios
                                 .post(baseURL, {
@@ -189,7 +198,7 @@ function Home() {
                         setErrors(errors => [...errors, newError]);
 
                         if (saveUrls === true) {
-                            let baseURL = process.env.REACT_APP_API_URL + "api/details.php/add";
+                            let baseURL = process.env.REACT_APP_API_URL + "urls/add";
 
                             axios
                                 .post(baseURL, {
@@ -200,13 +209,6 @@ function Home() {
                                 }).catch(error => {
                                     console.log(error);
                                 });
-
-                            // let newurl = db.collection("details").doc();
-                            // await newurl.set({
-                            //     id: newurl.id,
-                            //     url: result.message,
-                            //     urlid: urls[currentUrl].id
-                            // })
                         }
                     } else {
                         // console.log(result.progress);
@@ -244,6 +246,8 @@ function Home() {
     }
 
     const handleClick = async (e) => {
+        e.preventDefault()
+
         const { id, checked } = e.target;
         console.log('check id=' + id)
         setIsCheck([...isCheck, id]);
@@ -251,7 +255,7 @@ function Home() {
             setIsCheck(isCheck.filter(item => item !== id));
         }
 
-        let baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/check";
+        let baseURL = process.env.REACT_APP_API_URL + "urls/check";
 
         axios
             .post(baseURL, {
@@ -263,23 +267,12 @@ function Home() {
             }).catch(error => {
                 console.log(error);
             });
-
-        // const urlDocRef = doc(db, 'urls', id)
-        // try {
-        //     await updateDoc(urlDocRef, {
-        //         checked: checked
-        //     })
-        // } catch (err) {
-        //     alert(err)
-        // }
     };
 
     const handleSelectAll = async (e) => {
         setIsCheckAll(!isCheckAll);
-        console.log('isCheckAll=' + isCheckAll)
-        // setIsCheck(urls.map(li => li.id));
-        // setIsCheck(urls.map(async (li) => {
-        const baseURL = process.env.REACT_APP_API_URL + "api/index.php/url/checkall"
+        setType('')
+        const baseURL = process.env.REACT_APP_API_URL + "urls/checkall"
 
         axios
             .post(baseURL, {
@@ -300,12 +293,89 @@ function Home() {
         }
     };
 
+    const handleSelectType = async (e) => {
+        const { id } = e.target;
+        // console.log('type=' + id)
+        setIsCheckAll(false);
+        setType(id)
+
+        let baseTypesApi = process.env.REACT_APP_API_URL + "types";
+        axios.get(baseTypesApi).then((response) => {
+            if (response.data) {
+                setTypes(response.data)
+            }
+        }).catch((error) => {
+            if (error.response) {
+                console.log(error.response.data);
+            }
+        });
+    }
+
+    useEffect(() => {
+        separateTypes()
+    }, [types])
+
+    const separateTypes = () => {
+        types.map((_type, index) => {
+            if (_type.type === 'daily') {
+                setDailyUrls(_type.sitemap_id)
+            }
+            if (_type.type === 'monthly') {
+                setMonthlyUrls(_type.sitemap_id)
+            }
+            if (_type.type === 'asneeded') {
+                setAsNeededUrls(_type.sitemap_id)
+            }
+        })
+    }
+
+    useEffect(() => {
+        let _checkedUrls = []
+        if (dailyUrls !== '' && type === 'daily') {
+            console.log('daily')
+            if (dailyUrls.indexOf(',') != -1) {
+                _checkedUrls = dailyUrls.split(',')
+            } else {
+                _checkedUrls = [dailyUrls]
+            }
+            setIsCheck(_checkedUrls)
+        }
+        if (monthlyUrls !== '' && type === 'monthly') {
+            console.log('monthly')
+            if (monthlyUrls.indexOf(',') != -1) {
+                _checkedUrls = monthlyUrls.split(',')
+            } else {
+                _checkedUrls = [monthlyUrls]
+            }
+            setIsCheck(_checkedUrls)
+        }
+        if (asNeededUrls !== '' && type === 'asneeded') {
+            console.log('as needed')
+            if (asNeededUrls.indexOf(',') != -1) {
+                _checkedUrls = asNeededUrls.split(',')
+            } else {
+                _checkedUrls = [asNeededUrls]
+            }
+            setIsCheck(_checkedUrls)
+        }
+    }, [dailyUrls, monthlyUrls, asNeededUrls, type])
+
     const handleSaveUrls = () => {
         if (saveUrls === true) {
             setSaveUrls(false)
         } else {
             setSaveUrls(true)
         }
+    }
+
+    const [showListSettings, setShowListSettings] = useState(false)
+    const handleShowListSettings = () => {
+        setShowListSettings(false)
+    }
+
+    const [showManageUsers, setShowManageUsers] = useState(false)
+    const handleShowManageUsers = () => {
+        setShowManageUsers(false)
     }
 
     const [showErrorsModal, setShowErrorsModal] = useState(false)
@@ -330,13 +400,16 @@ function Home() {
                                         <i className='bi bi-toggle-off'></i>
                                     }
                                     &nbsp;Save Scanned Urls</span></li>
+                                <li><span className="dropdown-item" onClick={() => setShowListSettings(true)}><i className='bi bi-check2-square'></i> List Settings</span></li>
+                                {/* <li><span className="dropdown-item" onClick={() => setShowManageUsers(true)}><i className='bi bi-person'></i> Manage Users</span></li> */}
+                                <li><Link to="/users" className='dropdown-item'><i className='bi bi-person'></i> Mange Users</Link></li>
                                 <li><span className="dropdown-item" onClick={logout}><i className='bi bi-box-arrow-right'></i> Logout</span></li>
                             </ul>
                         </div>
                     </div>
 
                     <p>{urls.length} websites to generate</p>
-                    <div className="url-list-wrap">
+                    <div className={"url-list-wrap " + ((generating === true) ? "generating" : "")}>
                         <div>
                             <div className="d-flex align-items-center">
                                 {/* <div className="form-check">
@@ -345,13 +418,37 @@ function Home() {
                                         Select All
                                     </label>
                                 </div> */}
-                                <Checkbox
-                                    url="Select All"
-                                    id="selectAll"
-                                    handleClick={handleSelectAll}
-                                    folder={''}
-                                    isChecked={isCheckAll}
-                                    checked={isCheckAll} />
+                                <div className='d-flex'>
+                                    <Checkbox
+                                        url="Select All"
+                                        id="selectAll"
+                                        handleClick={handleSelectAll}
+                                        folder={''}
+                                        isChecked={isCheckAll}
+                                        checked={isCheckAll}
+                                        moreClass={'me-3'} />
+                                    <Checkbox
+                                        url="Daily"
+                                        id="daily"
+                                        handleClick={handleSelectType}
+                                        folder={''}
+                                        checked={(type === 'daily') ? true : false}
+                                        moreClass={'me-3'} />
+                                    <Checkbox
+                                        url="Monthly"
+                                        id="monthly"
+                                        handleClick={handleSelectType}
+                                        checked={(type === 'monthly') ? true : false}
+                                        folder={''}
+                                        moreClass={'me-3'} />
+                                    <Checkbox
+                                        url="As Needed"
+                                        id="asneeded"
+                                        handleClick={handleSelectType}
+                                        checked={(type === 'asneeded') ? true : false}
+                                        folder={''}
+                                        moreClass={'me-3'} />
+                                </div>
 
                                 <div className="ms-auto">
                                     <button className="btn py-0 px-1 fw-bold" onClick={() => setAddModal(true)}><i className="bi bi-plus-lg"></i></button>
@@ -362,21 +459,26 @@ function Home() {
                                 <div className='text-center mb-4'><Spinner animation="border" /></div> :
 
                                 <div>{
-                                    urls.map((_url, index) => (
-                                        <Url key={_url.id} id={_url.id} url={_url.url} isChecked={isCheck.includes(_url.id)} checked={_url.checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} />
-                                    ))
+                                    urls.map((_url, index) => {
+                                        let checked = isCheck.includes('' + _url.id + '')
+                                        return <Url key={index} index={index} id={_url.id} url={_url.url} checked={checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} current={currentUrl} />
+
+                                    })
                                 }
                                 </div>
                             }
                         </div>
                     </div>
 
-                    {progressStyle === 'animated' ? <ProgressBar now={progress} animated className='mb-2' /> : <ProgressBar now={progress} className='mb-2' />}
-                    {/* <button onClick={test}>click</button> */}
+                    <hr />
+
+                    {(progressStyle === 'animated' && generating === true) && <ProgressBar now={progress} animated className='mb-2' />}
+
+                    {generating && <div className='mb-2'>{'Scanning ' + activeUrl}</div>}
 
                     <div className='mb-4'>{status}</div>
 
-                    <button className='btn btn-primary mb-4' onClick={() => { reset(); generate(); }}>Generate</button>
+                    <button className='btn btn-primary mb-4' onClick={() => { reset(); generate(); }} disabled={generating}>Generate</button>
 
                     {addModal && <UrlForm showModal={addModal} modalCloseHandle={addModalHandle} />}
 
@@ -401,6 +503,8 @@ function Home() {
                             </Modal.Footer>
                         </Modal>
                     }
+
+                    {showListSettings && <ListSettingsModal showModal={showListSettings} hideModal={handleShowListSettings} />}
                 </div>
             </div>
         </>
