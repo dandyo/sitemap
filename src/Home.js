@@ -9,6 +9,7 @@ import { Modal, ProgressBar, Spinner, Button } from 'react-bootstrap';
 import Checkbox from './Checkbox';
 import ListSettingsModal from './ListSettings';
 import axios from 'axios';
+import { useUrlsContext } from './hooks/useUrlsContext';
 
 function Home() {
     // const { logout } = UserAuth();
@@ -35,51 +36,66 @@ function Home() {
     const [monthlyCheckedUrls, setMonthlyCheckedUrls] = useState([])
     const [asNeededCheckedUrls, setAsNeededCheckedUrls] = useState([])
 
-    const [urls, setUrls] = useState([])
+    const { urls, dispatch } = useUrlsContext()
     let baseURL = process.env.REACT_APP_API_URL + "urls";
     // console.log(baseURL)
 
     useEffect(() => {
+        const fetchUrls = async () => {
+            console.log('fetching urls...')
+            await axios.get(baseURL).then((response) => {
+                // console.log(response)
+                // setUrls(response.data);
+                dispatch({ type: 'SET_URLS', payload: response.data })
+                setLoading(false)
+            }).catch((error) => {
+                if (error.response) {
+                    console.log(error.response.data); // => the response payload 
+                }
+                setLoading(false)
+            });
+        }
+
         fetchUrls()
     }, [])
 
-    const fetchUrls = () => {
-        console.log('fetching urls...')
-        axios.get(baseURL).then((response) => {
-            setUrls(response.data);
-            setLoading(false)
-        }).catch((error) => {
-            if (error.response) {
-                console.log(error.response.data); // => the response payload 
-            }
-        });
-    }
+    // const fetchUrls = () => {
+    //     console.log('fetching urls...')
+    //     axios.get(baseURL).then((response) => {
+    //         setUrls(response.data);
+    //         setLoading(false)
+    //     }).catch((error) => {
+    //         if (error.response) {
+    //             console.log(error.response.data); // => the response payload 
+    //         }
+    //     });
+    // }
 
-    useEffect(() => {
-        if (loading === false) {
-            var x = 0;
-            var _isCheck = []
-            for (var i = 0; i < urls.length; i++) {
-                if (urls[i].checked === 1) {
-                    x++
-                    // _isCheck.push('' + urls[i].id + '')
-                    _isCheck = [..._isCheck, '' + urls[i].id + '']
-                    console.log('urls[i].checked === 1')
-                }
-            }
-            setIsCheck(_isCheck)
-            settingCheckTotal(x)
-            // console.log(_isCheck)
-        }
-    }, [urls])
+    // useEffect(() => {
+    //     if (loading === false) {
+    //         var x = 0;
+    //         var _isCheck = []
+    //         for (var i = 0; i < urls.length; i++) {
+    //             if (urls[i].checked === 1) {
+    //                 x++
+    //                 // _isCheck.push('' + urls[i].id + '')
+    //                 _isCheck = [..._isCheck, '' + urls[i].id + '']
+    //                 console.log('urls[i].checked === 1')
+    //             }
+    //         }
+    //         setIsCheck(_isCheck)
+    //         settingCheckTotal(x)
+    //         // console.log(_isCheck)
+    //     }
+    // }, [urls])
 
-    useEffect(() => {
-        if (checkTotal >= urls.length) {
-            setIsCheckAll(true);
-        } else {
-            setIsCheckAll(false);
-        }
-    }, [checkTotal, urls.length])
+    // useEffect(() => {
+    //     if (checkTotal >= urls.length) {
+    //         setIsCheckAll(true);
+    //     } else {
+    //         setIsCheckAll(false);
+    //     }
+    // }, [checkTotal, urls.length])
 
     const settingCheckTotal = (n) => {
         setCheckTotal(n)
@@ -89,7 +105,7 @@ function Home() {
 
     const addModalHandle = () => {
         setAddModal(false);
-        fetchUrls()
+        // fetchUrls()
     }
 
     // const [post, setPost] = React.useState(null);
@@ -246,24 +262,44 @@ function Home() {
     }
 
     const handleClick = async (e) => {
-        e.preventDefault()
+        // e.preventDefault()
+        console.log('click')
 
-        const { id, checked } = e.target;
-        console.log('check id=' + id)
-        setIsCheck([...isCheck, id]);
-        if (!checked) {
-            setIsCheck(isCheck.filter(item => item !== id));
+        const { id } = e.target;
+        const check = e.target.getAttribute('data-checked')
+        const index = e.target.getAttribute('data-index')
+
+        const inputdata = {
+            'index': index,
+            'id': id,
+            'checked': check
         }
+        console.log(inputdata)
+
+        dispatch({ type: 'CHECK_URL', payload: inputdata })
+
+        //     // dispatch({ type: 'REFRESH_URLS', payload: '' })
+
+        //     // let baseURL = process.env.REACT_APP_API_URL + "urls/get/" + id;
+        //     // axios
+        //     //     .post(baseURL)
+        //     //     .then((response) => {
+        //     //         // fetchUrls()
+        //     //         dispatch({ type: 'CHECK_URL', payload: response.data })
+        //     //     }).catch(error => {
+        //     //         console.log(error);
+        //     //     });
 
         let baseURL = process.env.REACT_APP_API_URL + "urls/check";
 
         axios
             .post(baseURL, {
                 id: id,
-                checked: (checked === true) ? 1 : 0
+                checked: (check === 1) ? 0 : 1
             })
             .then((response) => {
-                fetchUrls()
+                // fetchUrls()
+                // dispatch({ type: 'CHECK_URL', payload: response })
             }).catch(error => {
                 console.log(error);
             });
@@ -281,7 +317,7 @@ function Home() {
             .then((response) => {
                 // setPost(response.data);
                 // modalCloseHandle()
-                fetchUrls()
+                // fetchUrls()
 
             }).catch(error => {
                 console.log(error);
@@ -408,7 +444,7 @@ function Home() {
                         </div>
                     </div>
 
-                    <p>{urls.length} websites to generate</p>
+                    <p>{urls && urls.length} websites to generate</p>
                     <div className={"url-list-wrap " + ((generating === true) ? "generating" : "")}>
                         <div>
                             <div className="d-flex align-items-center">
@@ -458,13 +494,14 @@ function Home() {
                             {loading ?
                                 <div className='text-center mb-4'><Spinner animation="border" /></div> :
 
-                                <div>{
-                                    urls.map((_url, index) => {
-                                        let checked = isCheck.includes('' + _url.id + '')
-                                        return <Url key={index} index={index} id={_url.id} url={_url.url} checked={checked} folder={_url.folder} handleClick={handleClick} doneDelete={fetchUrls} current={currentUrl} />
+                                <div>
+                                    {
+                                        urls && urls.map((_url, index) => {
+                                            // let checked = isCheck.includes('' + _url.id + '')
+                                            return <Url key={index} index={index} id={_url.id} url={_url.url} checked={_url.checked} folder={_url.folder} handleClick={handleClick} current={currentUrl} />
 
-                                    })
-                                }
+                                        })
+                                    }
                                 </div>
                             }
                         </div>

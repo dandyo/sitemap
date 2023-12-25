@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { Modal, Button } from "react-bootstrap";
 import axios from 'axios';
+import { useUrlsContext } from './hooks/useUrlsContext';
 
 const EditModal = ({ showModal, hideModal, id, data }) => {
     const [url, setUrl] = useState(data.url);
     const [folder, setFolder] = useState(data.folder);
+    const { dispatch } = useUrlsContext()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -18,10 +20,13 @@ const EditModal = ({ showModal, hideModal, id, data }) => {
                 folder: folder
             })
             .then((response) => {
+                dispatch({ type: 'UPDATE_URL', payload: response.data })
                 hideModal()
+                // console.log(response);
             }).catch(error => {
                 console.log(error);
             });
+
         // const urlDocRef = doc(db, 'urls', id)
         // try {
         //     await updateDoc(urlDocRef, {

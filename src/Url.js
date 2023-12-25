@@ -4,15 +4,17 @@ import EditModal from './EditModal';
 import Checkbox from './Checkbox';
 import DetailsModal from './DetailsModal';
 import axios from 'axios';
+import { useUrlsContext } from './hooks/useUrlsContext';
 
-function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDelete, current }) {
+function Url({ index, id, url, isChecked, checked, folder, handleClick, current }) {
+    const { dispatch } = useUrlsContext()
+
     const [open, setOpen] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false);
     const [detailsModal, setDetailsModal] = useState(false);
 
     const handleClose = () => {
         setOpen(false)
-        doneDelete()
     }
 
     const handleCloseDelete = () => {
@@ -32,7 +34,11 @@ function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDele
             axios
                 .delete(baseURL)
                 .then((response) => {
-                    doneDelete()
+                    const inputdata = {
+                        'id': id
+                    }
+
+                    dispatch({ type: 'DELETE_URL', payload: inputdata })
                 }).catch(error => {
                     console.log(error);
                 });
@@ -48,12 +54,14 @@ function Url({ index, id, url, isChecked, checked, folder, handleClick, doneDele
                 <span className="drag-handle"><i className="bi bi-grip-vertical"></i></span>
 
                 <Checkbox
+                    index={index}
                     url={url}
                     id={id}
                     handleClick={handleClick}
                     folder={folder}
                     isChecked={isChecked}
-                    checked={checked} />
+                    checked={checked}
+                    moreClass={''} />
 
                 <div className="btn-wrap">
                     <button className="btn btn-edit" onClick={() => setOpen(true)}><i className="bi bi-pencil-square"></i></button>
