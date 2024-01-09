@@ -25,7 +25,7 @@ export const UserContextProvider = ({ children }) => {
                 return { success: 1 };
             }
             setWait(false);
-            return { success: 0, message: data.message };
+            return { success: 0, message: data.error };
         }
         catch (err) {
             setWait(false);
@@ -34,6 +34,7 @@ export const UserContextProvider = ({ children }) => {
     }
 
     const loggedInCheck = async () => {
+        console.log('loggedInCheck')
         const loginToken = localStorage.getItem('loginToken');
         Axios.defaults.headers.common['Authorization'] = 'Bearer ' + loginToken;
 

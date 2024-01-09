@@ -17,8 +17,10 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
 
     const [istypecheck, setistypecheck] = useState([]);
 
-    let baseUrlApi = process.env.REACT_APP_API_URL + "urls";
-    let baseTypesApi = process.env.REACT_APP_API_URL + "types?type=";
+    const [checkedOnly, setCheckedOnly] = useState(false)
+
+    let baseUrlApi = process.env.REACT_APP_API_URL;
+    // let baseTypesApi = process.env.REACT_APP_API_URL + "types?type=";
 
     useEffect(() => {
         fetchUrls()
@@ -28,8 +30,8 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
 
 
     const fetchUrls = () => {
-        console.log('fetchUrls')
-        axios.get(baseUrlApi).then((response) => {
+        // console.log('fetchUrls')
+        axios.get(baseUrlApi + 'urls').then((response) => {
             if (response.data) {
                 setUrls(response.data)
             }
@@ -42,8 +44,9 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
     }
 
     const fetchTypes = () => {
-        console.log('fetchdailyUrls')
-        axios.get(baseTypesApi).then((response) => {
+        // console.log('fetchdailyUrls')
+        axios.get(baseUrlApi + 'types').then((response) => {
+            // console.log('types', response.data);
             if (response.data) {
                 setTypes(response.data)
             }
@@ -114,7 +117,7 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
 
     useEffect(() => {
         if (loading == false) {
-            console.log(dailyCheckedUrls)
+            // console.log(dailyCheckedUrls)
             let arrString = dailyCheckedUrls.join(',')
             // console.log(arrString)
 
@@ -137,7 +140,7 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
 
     useEffect(() => {
         if (loading == false) {
-            console.log(monthlyCheckedUrls)
+            // console.log(monthlyCheckedUrls)
             let arrString = monthlyCheckedUrls.join(',')
             // console.log(arrString)
 
@@ -159,7 +162,7 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
 
     useEffect(() => {
         if (loading == false) {
-            console.log(asNeededCheckedUrls)
+            // console.log(asNeededCheckedUrls)
             let arrString = asNeededCheckedUrls.join(',')
             // console.log(arrString)
 
@@ -187,7 +190,7 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
         // console.log('value=' + value)
         const utype = e.target.getAttribute('data-utype');
         // const utype = e.target.dataset.utype;
-        console.log(utype)
+        // console.log(utype)
         // console.log(checked)
         if (utype === 'daily') {
             setDailyCheckedUrls([...dailyCheckedUrls, value]);
@@ -221,21 +224,26 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
                 <Modal.Title>List Settings</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                <div className='form-check mb-3'>
+                    <input className="form-check-input" type="checkbox" name='url' id='only-check' onChange={() => setCheckedOnly(!checkedOnly)} />
+                    <label className="form-check-label" htmlFor={'only-check'}>Show only checked</label>
+                </div>
                 {loading ?
                     <div className='text-center'><Spinner animation="border" /></div> :
                     <>
-                        <div className='settings-tab'>
+                        <div className={'settings-tab checked-only-' + checkedOnly}>
                             <Tabs id="tab-example"
                                 activeKey={key}
                                 onSelect={(k) => setKey(k)}
                                 className="mb-3">
                                 <Tab eventKey="daily" title="Daily">
+                                    <p>Checked {dailyCheckedUrls.length} out of {urls.length} urls</p>
                                     <table className='table'>
                                         <tbody>
                                             {urls.map((_url, index) => {
                                                 let checked = dailyCheckedUrls.includes('' + _url.id + '')
                                                 // console.log(_url.id)
-                                                return <tr key={index}>
+                                                return <tr key={index} className={'check-' + checked}>
                                                     <td>
                                                         <SettingsCheckbox
                                                             key={index}
@@ -252,12 +260,13 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
                                     </table>
                                 </Tab>
                                 <Tab eventKey="monthly" title="Monthly">
+                                    <p>Checked {monthlyCheckedUrls.length} out of {urls.length} urls</p>
                                     <table className='table'>
                                         <tbody>
                                             {urls.map((_url, index) => {
                                                 let checked = monthlyCheckedUrls.includes('' + _url.id + '')
                                                 // console.log(_url.id)
-                                                return <tr key={index}>
+                                                return <tr key={index} className={'check-' + checked}>
                                                     <td>
                                                         <SettingsCheckbox
                                                             key={index}
@@ -274,12 +283,13 @@ const ListSettingsModal = ({ showModal, hideModal, confirmModal, id }) => {
                                     </table>
                                 </Tab>
                                 <Tab eventKey="needed" title="As Needed">
+                                    <p>Checked {asNeededCheckedUrls.length} out of {urls.length} urls</p>
                                     <table className='table'>
                                         <tbody>
                                             {urls.map((_url, index) => {
                                                 let checked = asNeededCheckedUrls.includes('' + _url.id + '')
                                                 // console.log(_url.id)
-                                                return <tr key={index}>
+                                                return <tr key={index} className={'check-' + checked}>
                                                     <td>
                                                         <SettingsCheckbox
                                                             key={index}

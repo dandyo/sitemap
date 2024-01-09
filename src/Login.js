@@ -25,8 +25,10 @@ function Login() {
             setRedirect('Redirecting...');
             await loggedInCheck();
             return;
+        } else {
+            setErrMsg(data.message);
         }
-        setErrMsg(data.message);
+
     };
 
     const onChangeInput = (e) => {

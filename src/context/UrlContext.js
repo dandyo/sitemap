@@ -10,7 +10,7 @@ export const urlsReducer = (state, action) => {
             }
 
         case 'SET_URLS':
-            // console.log(action.payload)
+            console.log('SET_URLS')
 
             return {
                 urls: action.payload
@@ -35,7 +35,6 @@ export const urlsReducer = (state, action) => {
             }
 
         case 'CHECK_URL':
-            console.log(action.payload)
             var i = parseInt(action.payload.index)
             var check = parseInt(action.payload.checked)
 
@@ -50,6 +49,32 @@ export const urlsReducer = (state, action) => {
             }
 
         case 'GET_URL':
+            return {
+                urls: state.urls
+            }
+
+        case 'CHECK_ALL_URL':
+            // var x;
+            for (var i = 0; i < state.urls.length; i++) {
+                state.urls[i].checked = action.payload.checkall
+            }
+            return {
+                urls: state.urls
+            }
+
+        case 'CHECK_TYPE':
+            // var x;
+            var ids = action.payload.ids
+            ids = ids.split(',')
+
+            for (var i = 0; i < state.urls.length; i++) {
+                state.urls[i].checked = 0
+                var cID = state.urls[i].id
+
+                if (ids.indexOf(cID.toString()) !== -1) {
+                    state.urls[i].checked = 1
+                }
+            }
             return {
                 urls: state.urls
             }

@@ -3,7 +3,6 @@ import React from 'react'
 
 const Checkbox = ({ index, id, url, folder, isChecked, handleClick, checked, moreClass }) => {
     // const { dispatch } = useUrlsContext()
-    console.log(checked)
     const check = (checked == "1") ? true : false
 
     var inputProps = {

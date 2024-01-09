@@ -2,7 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import "@fancyapps/ui/dist/fancybox/fancybox.css"
 import { UserContext } from './AuthContext';
-// import PrivateRoute from './PrivateRoute';
+import PrivateRoute from './PrivateRoute';
 
 import Login from './Login';
 import Home from './Home';
@@ -23,6 +23,7 @@ function App() {
     <div className="App">
       <Router basename='sitemap'>
         <Routes>
+          <Route path="*" element={<Navigate to={user ? '/' : '/login'} />} />
           {user &&
             <>
               <Route path="/" element={<UrlsContextProvider><Home /></UrlsContextProvider>} />
@@ -36,7 +37,6 @@ function App() {
               <Route path="/login" element={<Login />} />
             </>
           }
-          <Route path="*" element={<Navigate to={user ? '/' : '/login'} />} />
         </Routes>
       </Router>
     </div >
